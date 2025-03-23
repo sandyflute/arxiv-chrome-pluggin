@@ -9,12 +9,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const url = arxivUrlInput.value.trim();
     
     if (!url) {
-      alert('Please enter an arXiv paper URL');
+      showError('Please enter an arXiv paper URL');
       return;
     }
 
     if (!url.includes('arxiv.org/abs/')) {
-      alert('Please enter a valid arXiv paper URL (e.g., https://arxiv.org/abs/1234.5678)');
+      showError('Please enter a valid arXiv paper URL (e.g., https://arxiv.org/abs/1234.5678)');
       return;
     }
 
@@ -30,10 +30,15 @@ document.addEventListener('DOMContentLoaded', function() {
         url: url
       });
 
+      if (response.error) {
+        showError(response.error);
+        return;
+      }
+
       // Display results
       displayResults(response.citations);
     } catch (error) {
-      alert('Error analyzing citations: ' + error.message);
+      showError('Error analyzing citations: ' + (error.message || 'Unknown error occurred'));
     } finally {
       // Hide loading state
       loadingDiv.style.display = 'none';
@@ -41,9 +46,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
+  function showError(message) {
+    resultsDiv.style.display = 'block';
+    resultsList.innerHTML = `
+      <div class="error-message">
+        ${message}
+      </div>
+    `;
+  }
+
   function displayResults(citations) {
     resultsDiv.style.display = 'block';
     resultsList.innerHTML = '';
+
+    if (!citations || Object.keys(citations).length === 0) {
+      showError('No citations found for this paper');
+      return;
+    }
 
     // Sort citations by count
     const sortedCitations = Object.entries(citations)
