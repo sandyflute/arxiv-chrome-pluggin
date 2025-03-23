@@ -42,22 +42,6 @@ function extractXmlContent(xml, tagName) {
   return match ? match[1].trim() : null;
 }
 
-// Function to extract references from arXiv API response
-function extractReferences(xml) {
-  const references = [];
-  const referencesRegex = /<arxiv:journal_ref>(.*?)<\/arxiv:journal_ref>/g;
-  let match;
-  
-  while ((match = referencesRegex.exec(xml)) !== null) {
-    const ref = match[1].trim();
-    if (ref) {
-      references.push(ref);
-    }
-  }
-  
-  return references;
-}
-
 // Function to fetch paper data from arXiv API
 async function fetchPaperData(arxivId) {
   try {
@@ -70,26 +54,41 @@ async function fetchPaperData(arxivId) {
     }
     const xmlText = await apiResponse.text();
     
-    // Extract title, abstract, and references
+    // Extract title and abstract
     const title = extractXmlContent(xmlText, 'title');
     const abstract = extractXmlContent(xmlText, 'summary');
-    const references = extractReferences(xmlText);
     
     if (!title || !abstract) {
       throw new Error('Missing required paper data');
     }
 
-    // Extract citations from references
-    const citations = new Set();
-    for (const ref of references) {
-      const ids = extractArxivIds(ref);
-      ids.forEach(id => citations.add(id));
+    // Fetch the LaTeX source
+    const sourceUrl = `https://arxiv.org/e-print/${arxivId}`;
+    const sourceResponse = await fetch(sourceUrl);
+    if (!sourceResponse.ok) {
+      throw new Error(`Failed to fetch source: ${sourceResponse.status}`);
     }
+    const sourceText = await sourceResponse.text();
+    
+    // Extract citations from the source text
+    const citations = new Set();
+    
+    // Look for citations in the bibliography section
+    const bibSectionRegex = /\\begin\{thebibliography\}.*?\\end\{thebibliography\}/s;
+    const bibSection = sourceText.match(bibSectionRegex);
+    if (bibSection) {
+      const bibCitations = extractArxivIds(bibSection[0]);
+      bibCitations.forEach(id => citations.add(id));
+    }
+    
+    // Look for citations in the main text
+    const mainCitations = extractArxivIds(sourceText);
+    mainCitations.forEach(id => citations.add(id));
     
     const citationsArray = Array.from(citations);
     console.log(`Found ${citationsArray.length} citations for paper: ${title}`);
     console.log('Citations:', citationsArray);
-    console.log('References:', references);
+    console.log('Source text length:', sourceText.length);
 
     return {
       title,
