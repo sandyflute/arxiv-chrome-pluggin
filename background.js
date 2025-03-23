@@ -42,6 +42,22 @@ function extractXmlContent(xml, tagName) {
   return match ? match[1].trim() : null;
 }
 
+// Function to extract references from arXiv API response
+function extractReferences(xml) {
+  const references = [];
+  const referencesRegex = /<arxiv:journal_ref>(.*?)<\/arxiv:journal_ref>/g;
+  let match;
+  
+  while ((match = referencesRegex.exec(xml)) !== null) {
+    const ref = match[1].trim();
+    if (ref) {
+      references.push(ref);
+    }
+  }
+  
+  return references;
+}
+
 // Function to fetch paper data from arXiv API
 async function fetchPaperData(arxivId) {
   try {
@@ -54,31 +70,26 @@ async function fetchPaperData(arxivId) {
     }
     const xmlText = await apiResponse.text();
     
-    // Extract title and abstract using regex
+    // Extract title, abstract, and references
     const title = extractXmlContent(xmlText, 'title');
     const abstract = extractXmlContent(xmlText, 'summary');
+    const references = extractReferences(xmlText);
     
     if (!title || !abstract) {
       throw new Error('Missing required paper data');
     }
 
-    // Fetch the source files
-    const sourceUrl = `https://arxiv.org/e-print/${arxivId}`;
-    const sourceResponse = await fetch(sourceUrl);
-    if (!sourceResponse.ok) {
-      throw new Error(`Failed to fetch source: ${sourceResponse.status}`);
+    // Extract citations from references
+    const citations = new Set();
+    for (const ref of references) {
+      const ids = extractArxivIds(ref);
+      ids.forEach(id => citations.add(id));
     }
-    const sourceText = await sourceResponse.text();
-    
-    // Look for citations in both abstract and source text
-    const citations = new Set([
-      ...extractArxivIds(abstract),
-      ...extractArxivIds(sourceText)
-    ]);
     
     const citationsArray = Array.from(citations);
     console.log(`Found ${citationsArray.length} citations for paper: ${title}`);
     console.log('Citations:', citationsArray);
+    console.log('References:', references);
 
     return {
       title,
