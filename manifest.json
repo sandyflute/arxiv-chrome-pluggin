@@ -5,10 +5,12 @@
   "description": "Analyzes citation networks from arXiv papers",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "storage"
   ],
   "host_permissions": [
-    "https://arxiv.org/*"
+    "https://arxiv.org/*",
+    "https://api.semanticscholar.org/*"
   ],
   "action": {
     "default_popup": "popup.html"

@@ -7,8 +7,12 @@
 <body>
   <div class="container">
     <h1>arXiv Citation Analyzer</h1>
-    <div class="input-section">
+    <div class="input-group">
       <input type="text" id="arxivUrl" placeholder="Enter arXiv paper URL (e.g., https://arxiv.org/abs/1234.5678)" />
+      <div class="depth-input">
+        <label for="maxDepth">Max Depth:</label>
+        <input type="number" id="maxDepth" min="1" max="10" value="5">
+      </div>
       <button id="analyzeBtn">Analyze Citations</button>
     </div>
     <div class="loading" id="loading" style="display: none;">

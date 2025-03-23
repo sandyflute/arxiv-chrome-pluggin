@@ -113,4 +113,74 @@ h2 {
   font-size: 14px;
   margin: 10px 0;
   text-align: center;
+}
+
+.depth-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.depth-input label {
+  font-size: 14px;
+  color: #666;
+}
+
+.depth-input input {
+  width: 60px;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.status {
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.status.error {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.status.success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.citation-item {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.citation-item:last-child {
+  border-bottom: none;
+}
+
+.citation-item a {
+  color: #1976d2;
+  text-decoration: none;
+}
+
+.citation-item a:hover {
+  text-decoration: underline;
+}
+
+.progress-text {
+  margin-top: 10px;
+  color: #666;
+  font-size: 14px;
+}
+
+#results {
+  display: none;
+  max-height: 400px;
+  overflow-y: auto;
 } 

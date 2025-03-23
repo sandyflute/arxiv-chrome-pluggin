@@ -1,20 +1,30 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const arxivUrlInput = document.getElementById('arxivUrl');
+  const paperUrlInput = document.getElementById('arxivUrl');
+  const maxDepthInput = document.getElementById('maxDepth');
   const analyzeBtn = document.getElementById('analyzeBtn');
   const loadingDiv = document.getElementById('loading');
   const resultsDiv = document.getElementById('results');
   const resultsList = document.getElementById('resultsList');
+  const progressText = document.createElement('div');
+  progressText.className = 'progress-text';
+  loadingDiv.appendChild(progressText);
 
   analyzeBtn.addEventListener('click', async function() {
-    const url = arxivUrlInput.value.trim();
+    const url = paperUrlInput.value.trim();
+    const maxDepth = parseInt(maxDepthInput.value);
     
     if (!url) {
-      showError('Please enter an arXiv paper URL');
+      showError('Please enter a paper URL');
       return;
     }
 
     if (!url.includes('arxiv.org/abs/')) {
-      showError('Please enter a valid arXiv paper URL (e.g., https://arxiv.org/abs/1234.5678)');
+      showError('Please enter a valid arXiv paper URL');
+      return;
+    }
+
+    if (maxDepth < 1 || maxDepth > 10) {
+      showError('Please enter a depth between 1 and 10');
       return;
     }
 
@@ -22,12 +32,13 @@ document.addEventListener('DOMContentLoaded', function() {
     loadingDiv.style.display = 'block';
     resultsDiv.style.display = 'none';
     analyzeBtn.disabled = true;
+    progressText.textContent = 'Starting analysis...';
 
     try {
-      // Send message to background script to start analysis
       const response = await chrome.runtime.sendMessage({
         action: 'analyzeCitations',
-        url: url
+        url: url,
+        maxDepth: maxDepth
       });
 
       if (response.error) {
