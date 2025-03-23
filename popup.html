@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>arXiv Citation Analyzer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>arXiv Citation Analyzer</h1>
+    <div class="input-section">
+      <input type="text" id="arxivUrl" placeholder="Enter arXiv paper URL (e.g., https://arxiv.org/abs/1234.5678)" />
+      <button id="analyzeBtn">Analyze Citations</button>
+    </div>
+    <div class="loading" id="loading" style="display: none;">
+      <div class="spinner"></div>
+      <p>Analyzing citations...</p>
+    </div>
+    <div class="results" id="results">
+      <h2>Top 10 Most Cited Papers</h2>
+      <div id="resultsList"></div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html> 

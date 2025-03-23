@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "arXiv Citation Analyzer",
+  "version": "1.0",
+  "description": "Analyzes citation networks from arXiv papers",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://arxiv.org/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+} 
