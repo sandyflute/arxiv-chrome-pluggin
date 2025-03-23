@@ -173,12 +173,23 @@ async function analyzeCitations(url, level = 0, maxLevel = 5) {
   if (!paperData) return {};
 
   const citations = {};
-  citations[paperData.title] = (citations[paperData.title] || 0) + 1;
+  
+  // Count this paper as being cited once by its parent
+  citations[paperData.title] = 1;
 
   if (level < maxLevel && paperData.citations.length > 0) {
     const subCitations = await processBatch(paperData.citations, level + 1, maxLevel);
     
-    // Merge citation counts
+    // Add citations from this paper's references
+    for (const citationId of paperData.citations) {
+      const citationUrl = `https://arxiv.org/abs/${citationId}`;
+      const citationData = await fetchPaperData(citationId);
+      if (citationData) {
+        citations[citationData.title] = (citations[citationData.title] || 0) + 1;
+      }
+    }
+    
+    // Add citations from deeper levels
     for (const [title, count] of Object.entries(subCitations)) {
       citations[title] = (citations[title] || 0) + count;
     }
