@@ -46,11 +46,13 @@ function extractXmlContent(xml, tagName) {
 async function fetchPaperData(arxivId) {
   try {
     console.log('Fetching data for arXiv ID:', arxivId);
-    const response = await fetch(`https://export.arxiv.org/api/query?id_list=${arxivId}`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    
+    // Fetch metadata from arXiv API
+    const apiResponse = await fetch(`https://export.arxiv.org/api/query?id_list=${arxivId}`);
+    if (!apiResponse.ok) {
+      throw new Error(`HTTP error! status: ${apiResponse.status}`);
     }
-    const xmlText = await response.text();
+    const xmlText = await apiResponse.text();
     
     // Extract title and abstract using regex
     const title = extractXmlContent(xmlText, 'title');
@@ -59,15 +61,28 @@ async function fetchPaperData(arxivId) {
     if (!title || !abstract) {
       throw new Error('Missing required paper data');
     }
+
+    // Fetch the source files
+    const sourceUrl = `https://arxiv.org/e-print/${arxivId}`;
+    const sourceResponse = await fetch(sourceUrl);
+    if (!sourceResponse.ok) {
+      throw new Error(`Failed to fetch source: ${sourceResponse.status}`);
+    }
+    const sourceText = await sourceResponse.text();
     
-    // Extract citations from abstract
-    const citations = extractArxivIds(abstract);
-    console.log(`Found ${citations.length} citations for paper: ${title}`);
-    console.log('Citations:', citations);
+    // Look for citations in both abstract and source text
+    const citations = new Set([
+      ...extractArxivIds(abstract),
+      ...extractArxivIds(sourceText)
+    ]);
+    
+    const citationsArray = Array.from(citations);
+    console.log(`Found ${citationsArray.length} citations for paper: ${title}`);
+    console.log('Citations:', citationsArray);
 
     return {
       title,
-      citations
+      citations: citationsArray
     };
   } catch (error) {
     console.error('Error fetching paper data:', error);
@@ -112,7 +127,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     analyzeCitations(request.url)
       .then(citations => {
         if (!citations || Object.keys(citations).length === 0) {
-          sendResponse({ error: 'No citations found for this paper. Please check if the paper contains arXiv citations in its abstract.' });
+          sendResponse({ error: 'No citations found for this paper. Please check if the paper contains arXiv citations.' });
           return;
         }
         sendResponse({ citations });
